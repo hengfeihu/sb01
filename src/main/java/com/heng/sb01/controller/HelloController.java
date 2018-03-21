@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HelloController {
     @RequestMapping(value = "login", method = RequestMethod.GET)
-    Result login(@RequestParam("username") String username, @RequestParam("password") String password) {
+    public Result login(@RequestParam("username") String username, @RequestParam("password") String password) {
         String jwtToken = JwtUtil.sign(username, password);
         SecurityUtils.getSubject().login(new JWTToken(jwtToken));
         return new Result().success("success", jwtToken);
