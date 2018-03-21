@@ -1,14 +1,17 @@
 package com.heng.sb01.config.shiro;
 
 import com.heng.sb01.entity.User;
+import com.heng.sb01.util.JwtUtil;
 import io.ebean.Ebean;
 import io.ebean.SqlRow;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
+import org.apache.shiro.authc.credential.CredentialsMatcher;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
+import org.apache.shiro.cache.CacheManager;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.Subject;
@@ -40,12 +43,17 @@ public class MyShiroRealm extends AuthorizingRealm {
     }
 
     @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        String loginName = token.getPrincipal().toString();
-        if (StringUtils.isNotBlank(loginName)) {
-            return new SimpleAuthenticationInfo(loginName, token.getCredentials(), getName());
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken auth) throws AuthenticationException {
+        String token = (String) auth.getCredentials();
+        String username = JwtUtil.getUsername(token);
+        if (StringUtils.isNotBlank(username)) {
+            return new SimpleAuthenticationInfo(username, token, getName());
         } else {
             throw new UnknownAccountException();
         }
+    }
+
+    public MyShiroRealm() {
+        this.setAuthenticationTokenClass(JWTToken.class);
     }
 }

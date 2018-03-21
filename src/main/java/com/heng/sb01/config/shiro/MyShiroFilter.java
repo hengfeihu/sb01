@@ -10,8 +10,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
@@ -35,30 +34,40 @@ public class MyShiroFilter extends FormAuthenticationFilter {
     protected boolean isAccessAllowed(ServletRequest servletRequest, ServletResponse servletResponse, Object mappedValue) {
         Subject subject = getSubject(servletRequest, servletResponse);
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        if (logger.isInfoEnabled()) {
-            System.out.println("");
-            System.out.println(" > " + request.getMethod() + " " + getUrl(request));
-            Enumeration headerNames = request.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String key = (String) headerNames.nextElement();
-                String value = request.getHeader(key);
-                System.out.println(" > " + key + ":" + value);
+        String authorization = request.getHeader("Authorization");
+        if (authorization != null) {
+            if (logger.isInfoEnabled()) {
+                System.out.println("");
+                System.out.println(" > " + request.getMethod() + " " + getUrl(request));
+                Enumeration headerNames = request.getHeaderNames();
+                while (headerNames.hasMoreElements()) {
+                    String key = (String) headerNames.nextElement();
+                    String value = request.getHeader(key);
+                    System.out.println(" > " + key + ":" + value);
+                }
+                System.out.println("");
             }
-            System.out.println("");
+        } else {
+            try {
+                WebUtils.toHttp(servletResponse).sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        String uri = request.getRequestURI();
-        if (uri.equals("/") || uri.equals("/login")) return true;
-        if (uri.startsWith("/error") || uri.startsWith("/assets") || uri.startsWith("/upload") || uri.endsWith("favicon.ico"))
-            return true;
-        if (!subject.isAuthenticated() && !subject.isRemembered()) {
-            return false;
-        }
-        try {
-            return subject.isPermitted(new URIPermission(new URI(request.getRequestURI()), request.getMethod()));
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return true;
+//        String uri = request.getRequestURI();
+//        if (uri.equals("/") || uri.equals("/login")) return true;
+//        if (uri.startsWith("/error") || uri.startsWith("/assets") || uri.startsWith("/upload") || uri.endsWith("favicon.ico"))
+//            return true;
+//        if (!subject.isAuthenticated() && !subject.isRemembered()) {
+//            return false;
+//        }
+//        try {
+//            return subject.isPermitted(new URIPermission(new URI(request.getRequestURI()), request.getMethod()));
+//        } catch (URISyntaxException e) {
+//            e.printStackTrace();
+//            return false;
+//        }
     }
 
     private static String getUrl(HttpServletRequest request) {

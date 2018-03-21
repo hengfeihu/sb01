@@ -1,5 +1,6 @@
 package com.heng.sb01.controller;
 
+import com.heng.sb01.entity.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ErrorAttributes;
 import org.springframework.boot.autoconfigure.web.ErrorController;
@@ -8,7 +9,6 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,10 +36,8 @@ public class RestErrorController implements ErrorController {
     }
 
     @RequestMapping(value = PATH, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
-        Map<String, Object> body = getErrorAttributes(request, isIncludeStackTrace(request, MediaType.ALL));
-        HttpStatus status = getStatus(request);
-        return new ResponseEntity<Map<String, Object>>(body, status);
+    public Result error(HttpServletRequest request) {
+        return new Result().error(getStatus(request).value(), "error", getErrorAttributes(request, isIncludeStackTrace(request, MediaType.ALL)));
     }
 
     @Override
